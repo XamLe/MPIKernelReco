@@ -1,0 +1,4 @@
+name = "MPIKernelReco"
+uuid = "e0a162af-67f6-48e7-8e5f-b11635eec1af"
+authors = ["Max Lewerenz <max.lewerenz@gmail.com>"]
+version = "0.1.0"

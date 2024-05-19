@@ -13,10 +13,10 @@ using LinearAlgebra
 # Define an abstract type AbstractKernel
 abstract type AbstractKernel end
 
-# Define an abstract type AbstractSeparableKernel
-abstract type AbstractSeperableKernel end
+# Define an abstract subtype AbstractSeparableKernel of AbstractKernel
+abstract type AbstractSeperableKernel <: AbstractKernel end
 
-# Define a concrete subtype ExponentialKernel of AbstractKernel
+# Define a concrete subtype ExponentialKernel of AbstractSeperableKernel
 struct ExponentialKernel <: AbstractSeperableKernel end
 
 # Define a concrete subtype MultiquadricKernel of AbstractKernel
@@ -42,7 +42,7 @@ Exponential kernel function
 - The kernel value between `x` and `y` using the Exponential Kernel. ``K(x,y) = \\exp(-\\|x - y\\|^2)``
 """
 function kernel(x, y, epsilon ,::Type{ExponentialKernel})
-    return exp(- epsilon * norm(x - y)^2)
+    return exp(- epsilon * norm(x .- y)^2)
 end
 
 

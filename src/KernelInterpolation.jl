@@ -31,16 +31,16 @@ The interpolant satisfies ``s(x_i) = f_i`` For all ``i = 1, \\ldots, n``.
 # Returns
 - `beta`: Vector of length n containing the coefficients corresponding to the kernel centered at the respective interpolation point x_i
 """
-function getKernelInterpolationCoefficients(f::Vector, x, epsilon, ::Type{KernelType}) where KernelType<:AbstractKernel
-    println("Assemble interpolation matrix")
+function getKernelInterpolationCoefficients(A::Matrix{Float64}, f::Vector, x, epsilon, ::Type{KernelType}) where KernelType<:AbstractKernel
+    # println("Assemble interpolation matrix")
     # TODO: Interpolation matrix stays the same as long as the centers of interpolation stay the same. Perform Cholzki decomposition to speed up computation. Decomposition has to be done only once.
-    A = assembleKernelInterpolationMatrix(x, epsilon, KernelType)
+    # A = assembleKernelInterpolationMatrix(x, epsilon, KernelType)
     # println("Solve linear system with backslash")
     # @time beta = A'A \ A'f
     # NOTE: The backslash operator is multiple times faster than the conjugate gradient method. (3sec vs 50sec)
     # However it leads to more "noisy" solutions.
-    println("Solve linear system with cg and preconditioner A'")
-    @time beta = cg(A'A, A'f, maxiter = 20) # find a norm minimal solution to the problem
+    #println("Solve linear system with cg and preconditioner A'")
+    beta = cg(A'A, A'*f, maxiter = 20) # find a norm minimal solution to the problem
     return beta
 end
 
@@ -115,7 +115,9 @@ end
 function choleskyDecomposeInterpolationMatrix(x, epsilon, ::Type{KernelType}) where {KernelType<:AbstractKernel}
     A = assembleKernelInterpolationMatrix(x, epsilon, KernelType)
     smallest_eigenvalue = minimum(eigvals(A))
+    # TODO: If smaller then a threshold and negative, else error or without addition of smallest eigenvalue
     println("Warning: diagonal of interpolation matrix is added with smallest eigenvalue: ", smallest_eigenvalue)
-    A = cholesky(A - 2 * smallest_eigenvalue * I)
+    A = cholesky(A + 2 * smallest_eigenvalue * I)
+    # A = cholesky(A)
     return A
 end

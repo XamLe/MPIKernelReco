@@ -1,4 +1,5 @@
-push!(LOAD_PATH,"../src/")
-using Documenter, MPIKernelReco
+# push!(LOAD_PATH,"../src/")
+using MPIKernelReco
+using Documenter
 
 makedocs(sitename = "MPIKernelReco Documentation")

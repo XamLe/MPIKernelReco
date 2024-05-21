@@ -1,2 +1,5 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+MPIKernelReco = "e0a162af-67f6-48e7-8e5f-b11635eec1af"
+MPIsimTools = "12d45fdb-0ec5-486a-beba-f82c41043bc1"
+OpenMPIData = "23f492f2-76ae-56df-892e-e25cea322c51"

@@ -11,6 +11,27 @@ Email: max.lewerenz@gmail.com
 Date Created: 07.03.2024
 """
 
+"""
+    assembleReconstructionMatrix(ALPHA::Matrix{Float64}, x1::Vector{Float64}, x2::Vector{Float64}, x3::Vector{Float64},
+                                 ::Type{ReconstructionKernel}, epsilon_reco::Float64,
+                                 ::Type{InterpolationKernel}, epsilon_interpol::Float64)
+                                 -> Matrix{Float64}
+
+Assembles the reconstruction matrix using the interpolation and reconstruction kernels.
+
+# Arguments
+- `ALPHA::Matrix{Float64}`: The computed interpolation coefficients matrix.
+- `x1::Vector{Float64}`: The x-coordinates for the grid points.
+- `x2::Vector{Float64}`: The y-coordinates for the grid points.
+- `x3::Vector{Float64}`: The z-coordinates for the grid points.
+- `ReconstructionKernel::Type{<:AbstractKernel}`: The type of kernel used for reconstruction.
+- `epsilon_reco::Float64`: The shape parameter for the reconstruction kernel.
+- `InterpolationKernel::Type{<:AbstractKernel}`: The type of kernel used for interpolation.
+- `epsilon_interpol::Float64`: The shape parameter for the interpolation kernel.
+
+# Returns
+- `Matrix{Float64}`: The assembled reconstruction matrix.
+"""
 function assembleReconstructionMatrix(ALPHA::Matrix{Float64}, x1::Vector{Float64}, x2::Vector{Float64}, x3::Vector{Float64}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64) where {ReconstructionKernel<:AbstractKernel, InterpolationKernel<:AbstractKernel}
     K = computeConvolvedConvolutionalKernel(x1, x2, x3, ReconstructionKernel, epsilon_reco, InterpolationKernel, epsilon_interpol)
     return ALPHA'*K*ALPHA

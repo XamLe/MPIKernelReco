@@ -10,22 +10,34 @@ File containing functions for the kernel-based reconstruction.
 """
 
 """
-    mainKernelReco(patch, numPatches, filenameMeas, filenameSM)
+    mainKernelReco(patch::Int, numPatches::Int, filenameSM::String, filenameMeas::String,
+                   ::Type{ReconstructionKernel} = ExponentialKernel, epsilon_reco::Float64 = 50.0,
+                   ::Type{InterpolationKernel} = ExponentialKernel, epsilon_interpol::Float64 = 50.0)
 
-Triggers the kernel interpolation and starts the processes of
-1. reading system matrix and measurements
-2. interpolating the system functions
-3. assembling the reconstruction matrix
-4. performing the reconstruction
-5. evaluating and visualizing the concentration
+Triggers the kernel interpolation and starts the following processes:
+
+1. Reading the system matrix and measurements.
+2. Interpolating the system functions.
+3. Assembling the reconstruction matrix.
+4. Performing the reconstruction.
+5. Evaluating and visualizing the concentration.
 
 # Arguments
-- `patch`: Number that specifies the patch that should be reconstructed
-- `numPatches`: Total amount of patches
-- `filenameSM`: Path to the system matrix `.mdf` file
-- `filenameMeas`: Path to the measurement results `.mdf` file
-"""
+- `patch::Int`: Number that specifies the patch that should be reconstructed.
+- `numPatches::Int`: Total amount of patches.
+- `filenameSM::String`: Path to the system matrix `.mdf` file.
+- `filenameMeas::String`: Path to the measurement results `.mdf` file.
+- `ReconstructionKernel::Type{<:AbstractKernel}`: The type of kernel to use for reconstruction (default: `ExponentialKernel`).
+- `epsilon_reco::Float64`: Parameter for the reconstruction kernel (default: 50.0).
+- `InterpolationKernel::Type{<:AbstractKernel}`: The type of kernel to use for interpolation (default: `ExponentialKernel`).
+- `epsilon_interpol::Float64`: Parameter for the interpolation kernel (default: 50.0).
 
+# Returns
+A tuple containing:
+- `c`: The concentration array.
+- `interpolation_coefficients`: The coefficients required for interpolation.
+- `A`: The reconstruction matrix.
+"""
 function mainKernelReco(patch=10,
     numPatches=19,
     filenameSM=joinpath(OpenMPIData.basedir(), "data", "calibrations", "2.mdf"),
@@ -92,6 +104,7 @@ function mainKernelReco(patch=10,
     4. Perform the reconstruction
     """
     c = concentration(x1, x2, x3, x1, x2, x3, interpolation_coefficients, beta, ReconstructionKernel, epsilon_reco, InterpolationKernel, epsilon_interpol)
+
 
     """
     5. Plot the concentration for the given patch

@@ -19,11 +19,11 @@ Compute the concentration given interpolation points, evaluation points, interpo
 - `x1_eval::Vector{Float64}`: Vector of x-coordinates for evaluation points.
 - `x2_eval::Vector{Float64}`: Vector of y-coordinates for evaluation points.
 - `x3_eval::Vector{Float64}`: Vector of z-coordinates for evaluation points.
-- `ALPHA::Matrix{Float64}`: `n × m` Matrix containing the interpolation coefficients of the system matrices, where `n` is the number of grid points and `m` is the number of forward operators.
-- `beta::Vector{Float64}`: Vector of length `m`, containing the computed coefficients for the basis functions in the kernel-based reconstruction.
-- `::Type{ReconstructionKernel}`: The type of kernel function to be used for reconstruction (`k^{\text{reco}}`).
+- `ALPHA::Matrix{Float64}`: ``n × m`` Matrix containing the interpolation coefficients of the system matrices, where ``n`` is the number of grid points and `m` is the number of forward operators.
+- `beta::Vector{Float64}`: Vector of length ``m``, containing the computed coefficients for the basis functions in the kernel-based reconstruction.
+- `::Type{ReconstructionKernel}`: The type of kernel function to be used for reconstruction (``k^{\\text{reco}}``).
 - `epsilon_reco::Float64`: Shape parameter for the reconstruction kernel.
-- `::Type{InterpolationKernel}`: The type of kernel function to be used for interpolation (`k^{\text{interpol}}`).
+- `::Type{InterpolationKernel}`: The type of kernel function to be used for interpolation (``k^{\\text{interpol}}``).
 - `epsilon_interpol::Float64`: Shape parameter for the interpolation kernel.
 
 # Returns
@@ -42,9 +42,9 @@ Compute the convolutional kernel matrix given interpolation and evaluation point
 # Arguments
 - `x_interpol::Vector{Vector{Float64}}`: Nested vector where each sub-vector contains coordinates for interpolation points.
 - `x_eval::Vector{Vector{Float64}}`: Nested vector where each sub-vector contains coordinates for evaluation points.
-- `::Type{ReconstructionKernel}`: The type of kernel function to be used for reconstruction (`k^{\text{reco}}`).
+- `::Type{ReconstructionKernel}`: The type of kernel function to be used for reconstruction (``k^{\\text{reco}}``).
 - `epsilon_reco::Float64`: Shape parameter for the reconstruction kernel.
-- `::Type{InterpolationKernel}`: The type of kernel function to be used for interpolation (`k^{\text{interpol}}`).
+- `::Type{InterpolationKernel}`: The type of kernel function to be used for interpolation (``k^{\\text{interpol}}``).
 - `epsilon_interpol::Float64`: Shape parameter for the interpolation kernel.
 
 # Returns
@@ -71,9 +71,9 @@ Compute the convolutional kernel matrix for 3D interpolation and evaluation poin
 - `x1_eval::Vector{Float64}`: Vector of x-coordinates for evaluation points.
 - `x2_eval::Vector{Float64}`: Vector of y-coordinates for evaluation points.
 - `x3_eval::Vector{Float64}`: Vector of z-coordinates for evaluation points.
-- `::Type{ReconstructionKernel}`: The type of kernel function to be used for reconstruction (`k^{\text{reco}}`).
+- `::Type{ReconstructionKernel}`: The type of kernel function to be used for reconstruction (``k^{\\text{reco}}``).
 - `epsilon_reco::Float64`: Shape parameter for the reconstruction kernel.
-- `::Type{InterpolationKernel}`: The type of kernel function to be used for interpolation (`k^{\text{interpol}}`).
+- `::Type{InterpolationKernel}`: The type of kernel function to be used for interpolation (``k^{\\text{interpol}}``).
 - `epsilon_interpol::Float64`: Shape parameter for the interpolation kernel.
 
 # Returns

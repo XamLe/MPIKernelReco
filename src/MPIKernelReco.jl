@@ -9,11 +9,11 @@ include("Visualization.jl")
 include("readWriteHDF5.jl")
 
 export kernel, ExponentialKernel, AbstractKernel, MultiquadricKernel, InverseMultiquadricKernel, Wendland0Kernel
-export getKernelInterpolationCoefficients, kernelInterpolant, choleskyDecomposeInterpolationMatrix
+export getKernelInterpolationCoefficients, assembleKernelInterpolationMatrix, kernelInterpolant, choleskyDecomposeInterpolationMatrix
 export mainKernelReco
-export computeConvolvedConvolutionalKernel
+export assembleReconstructionMatrix, computeConvolvedConvolutionalKernel
 export computeConvolutionalKernel
-export heatmapPlotSystemFunction, surfacePlotSystemFuction, surfacePlotInterpolatedSystemFunction, heatmapPlotInterpolatedSystemFunction, compareInterpolation
+export heatmapPlotSystemFunction, surfacePlotSystemFunction, surfacePlotInterpolatedSystemFunction, heatmapPlotInterpolatedSystemFunction, compareInterpolation
 export writeInterpolationCoefficients
 export concentration
 

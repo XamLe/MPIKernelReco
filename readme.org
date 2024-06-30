@@ -1,0 +1,5 @@
+#+title: Readme
+
+This is the implementation of the work in my master thesis.
+
+The file of the thesis can be found [[https://github.com/XamLe/master-thesis][here]] after the project is finished.

@@ -79,12 +79,13 @@ This integral is needed in the computation of the reconstruction matrix entries.
 
 # Returns
 """
-function computeConvolvedConvolutionalKernel(x::Vector{Vector{Float64}}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64) where {ReconstructionKernel<:AbstractKernel, InterpolationKernel<:AbstractKernel}
+function computeConvolvedConvolutionalKernel(x::Vector{Vector{Float64}}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64, domain) where {ReconstructionKernel<:AbstractKernel, InterpolationKernel<:AbstractKernel}
     # As the convolvedConvolutionalKernel is symmetric, we only need to compute the lower triagonal matrix.
     k(u,p) = [i >= j ? kernel(u[1:3], u[4:6], epsilon_reco, ReconstructionKernel) * kernel(u[1:3], x[j], epsilon_interpol, InterpolationKernel) * kernel(u[4:6], x[i], epsilon_interpol, InterpolationKernel) : 0.0 for i in eachindex(x), j in eachindex(x)]
-	domain = (-ones(6), ones(6))
+	# domain = (-ones(6), ones(6))
 	prob = IntegralProblem(k, domain)
-	@time sol = solve(prob, HCubatureJL(), reltol = 1e-3, abstol = 1e-3)
+	# @time sol = solve(prob, HCubatureJL(), reltol = 1e-3, abstol = 1e-3)
+	@time sol = solve(prob, HCubatureJL(), reltol = 1e-3)
 	return sol.u' + sol.u - Diagonal(diag(sol.u))
 end
 
@@ -103,21 +104,22 @@ This integral is needed in the computation of the reconstruction matrix entries.
 
 # Returns
 """
-function computeConvolvedConvolutionalKernel(x::Vector{Float64}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64) where {ReconstructionKernel<:AbstractSeperableKernel, InterpolationKernel<:AbstractSeperableKernel}
+function computeConvolvedConvolutionalKernel(x::Vector{Float64}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64) where {ReconstructionKernel<:AbstractSeparableKernel, InterpolationKernel<:AbstractSeparableKernel}
     # As the convolvedConvolutionalKernel is symmetric, we only need to compute the lower triagonal matrix.
     k(u,p) = [i >= j ? kernel(u[1], u[2], epsilon_reco, ReconstructionKernel) * kernel(u[1], x[j], epsilon_interpol, InterpolationKernel) * kernel(u[2], x[i], epsilon_interpol, InterpolationKernel) : 0.0 for i in eachindex(x), j in eachindex(x)]
-	domain = (-ones(2), ones(2))
+    # domain = (-ones(2), ones(2))
+	domain = ([x[1], x[1]], [x[end], x[end]])
 	prob = IntegralProblem(k, domain)
 	@time sol = solve(prob, HCubatureJL(), reltol = 1e-3, abstol = 1e-3)
 	return sol.u' + sol.u - Diagonal(diag(sol.u))
 end
 
 """
-    function computeConvolvedConvolutionalKernel(x1::Vector{Float64}, x2::Vector{Float64}, x3::Vector{Float64}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64) where {ReconstructionKernel<:AbstractSeperableKernel, InterpolationKernel<:AbstractSeperableKernel}
+    function computeConvolvedConvolutionalKernel(x1::Vector{Float64}, x2::Vector{Float64}, x3::Vector{Float64}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64) where {ReconstructionKernel<:AbstractSeparableKernel, InterpolationKernel<:AbstractSeparableKernel}
 
 computes the integral
 """
-function computeConvolvedConvolutionalKernel(x1::Vector{Float64}, x2::Vector{Float64}, x3::Vector{Float64}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64) where {ReconstructionKernel<:AbstractSeperableKernel, InterpolationKernel<:AbstractSeperableKernel}
+function computeConvolvedConvolutionalKernel(x1::Vector{Float64}, x2::Vector{Float64}, x3::Vector{Float64}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64) where {ReconstructionKernel<:AbstractSeparableKernel, InterpolationKernel<:AbstractSeparableKernel}
     if (x1 == x2 && x2 == x3)
         K1 = computeConvolvedConvolutionalKernel(x1, ReconstructionKernel, epsilon_reco, InterpolationKernel, epsilon_interpol)
         K2 = K1

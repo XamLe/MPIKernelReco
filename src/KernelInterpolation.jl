@@ -32,14 +32,6 @@ The interpolant satisfies ``s(x_i) = f_i`` For all ``i = 1, \\ldots, n``.
 - `beta`: Vector of length n containing the coefficients corresponding to the kernel centered at the respective interpolation point x_i
 """
 function getKernelInterpolationCoefficients(A::Matrix{Float64}, f::Vector, x, epsilon, ::Type{KernelType}) where KernelType<:AbstractKernel
-    # println("Assemble interpolation matrix")
-    # TODO: Interpolation matrix stays the same as long as the centers of interpolation stay the same. Perform Cholzki decomposition to speed up computation. Decomposition has to be done only once.
-    # A = assembleKernelInterpolationMatrix(x, epsilon, KernelType)
-    # println("Solve linear system with backslash")
-    # @time beta = A'A \ A'f
-    # NOTE: The backslash operator is multiple times faster than the conjugate gradient method. (3sec vs 50sec)
-    # However it leads to more "noisy" solutions.
-    #println("Solve linear system with cg and preconditioner A'")
     beta = cg(A'A, A'*f, maxiter = 20) # find a norm minimal solution to the problem
     return beta
 end
@@ -85,7 +77,7 @@ the `i`-th and `j`-th points in the input vector `x`, using the specified kernel
 # Example
 ```julia
 x = ([1.0, 2.0, 0.1], [3.0, 4.0, 0.2], [5.0, 6.0, 0.3])  # Example points
-A = assembleKernelInterpolationMatrix(x, ExponentialKernel)
+A = assembleKernelInterpolationMatrix(x, GaussianKernel)
 ```
 """
 function assembleKernelInterpolationMatrix(x, epsilon, ::Type{KernelType}) where {KernelType<:AbstractKernel}
@@ -133,10 +125,14 @@ The function first assembles the kernel interpolation matrix using the provided 
 """
 function choleskyDecomposeInterpolationMatrix(x, epsilon, ::Type{KernelType}) where {KernelType<:AbstractKernel}
     A = assembleKernelInterpolationMatrix(x, epsilon, KernelType)
+    A += 0.01 * I(size(A, 1))
     smallest_eigenvalue = minimum(eigvals(A))
-    # TODO: If smaller then a threshold and negative, else error or without addition of smallest eigenvalue
-    println("Warning: diagonal of interpolation matrix is added with smallest eigenvalue: ", smallest_eigenvalue)
-    A = cholesky(A + 2 * smallest_eigenvalue * I)
-    # A = cholesky(A)
+    if smallest_eigenvalue < 0
+        println("Warning: diagonal of interpolation matrix is added with smallest eigenvalue: ", smallest_eigenvalue)
+        A += 1.1* abs.(smallest_eigenvalue) * I(size(A, 1))
+        A = cholesky(A)
+    else
+        A = cholesky(A)
+    end
     return A
 end

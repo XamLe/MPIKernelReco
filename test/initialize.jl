@@ -17,6 +17,9 @@ measuredSM, smP = MPIsimTools.readParams(filenameSM, "SM", numPatches=numPatches
 u, goodFreqIndex = MPIsimTools.processMeasurement(u, measP, tP, mfP)
 measuredSM = MPIsimTools.processSM(measuredSM, smP, tP, goodFreqIndex)
 
+# in 3d, we have multiple frames
+# u = u[:,:,:,1]
+
 #Dimensions of SMs: numGridPoints x tP.numFreq x 3 x periodsPerPatch (1)
 u = reshape(u[:, 1:3, patch, :], length(goodFreqIndex) * 3)
 SM = convert(Array{Complex{Float32},2}, reshape(measuredSM[:, :, 1:3, :],
@@ -31,3 +34,10 @@ interpolation_grid = vec([[(2*i - (smP.FOV[1,1] + smP.FOV[1,2]))/((smP.FOV[1,2] 
 x1 = [(2 * i - (smP.FOV[1, 1] + smP.FOV[1, 2])) / ((smP.FOV[1, 2] - smP.FOV[1, 1])) for i in smP.rX]
 x2 = [(2 * i - (smP.FOV[2, 1] + smP.FOV[2, 2])) / ((smP.FOV[2, 2] - smP.FOV[2, 1])) for i in smP.rY]
 x3 = [(2 * i - (smP.FOV[3, 1] + smP.FOV[3, 2])) / ((smP.FOV[3, 2] - smP.FOV[3, 1])) for i in smP.rZ]
+
+# SM_real = real.(SM)
+# SM_imag = imag.(SM)
+# SM_real_imag = hcat(SM_real, SM_imag)
+# u_real = real.(u)
+# u_imag = imag.(u)
+# u_real_imag = vcat(u_real, u_imag)

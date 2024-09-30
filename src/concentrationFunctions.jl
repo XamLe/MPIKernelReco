@@ -79,7 +79,7 @@ Compute the convolutional kernel matrix for 3D interpolation and evaluation poin
 # Returns
 - `K_conv::Matrix{Float64}`: The computed convolutional kernel matrix for the 3D case.
 """
-function computeConvolutionalKernel(x1_interpol::Vector{Float64}, x2_interpol::Vector{Float64}, x3_interpol::Vector{Float64}, x1_eval::Vector{Float64}, x2_eval::Vector{Float64}, x3_eval::Vector{Float64}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64) where {ReconstructionKernel<:AbstractSeperableKernel, InterpolationKernel<:AbstractSeperableKernel}
+function computeConvolutionalKernel(x1_interpol::Vector{Float64}, x2_interpol::Vector{Float64}, x3_interpol::Vector{Float64}, x1_eval::Vector{Float64}, x2_eval::Vector{Float64}, x3_eval::Vector{Float64}, ::Type{ReconstructionKernel}, epsilon_reco::Float64, ::Type{InterpolationKernel}, epsilon_interpol::Float64) where {ReconstructionKernel<:AbstractSeparableKernel, InterpolationKernel<:AbstractSeparableKernel}
     K1 = computeConvolutionalKernel(x1_interpol, x1_eval, ReconstructionKernel, epsilon_reco, InterpolationKernel, epsilon_interpol)
     K2 = computeConvolutionalKernel(x2_interpol, x2_eval, ReconstructionKernel, epsilon_reco, InterpolationKernel, epsilon_interpol)
     K3 = computeConvolutionalKernel(x3_interpol, x3_eval, ReconstructionKernel, epsilon_reco, InterpolationKernel, epsilon_interpol)

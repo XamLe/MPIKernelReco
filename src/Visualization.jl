@@ -1,4 +1,7 @@
 using Plots
+using LaTeXStrings
+using Printf
+
 
 """
     Visualization.jl
@@ -16,7 +19,7 @@ Generates a heatmap of the system function for the specified patch and adds it t
 - `values::Vector{Float32}`: A vector of system function values that will be reshaped into a 3D array with dimensions (19, 19, 19).
 - `patch::Int64`: The patch index for which the system function should be visualized (default: 10).
 """
-function heatmapPlotSystemFunction!(p, values::Vector{Float32}, patch=10::Int64)
+function heatmapPlotSystemFunction!(p, values::Vector, patch=10::Int64)
     values = reshape(values, (19,19,19))
 
     heatmap!(p, values[:,:,patch], title = "System Function, for patch $patch")
@@ -74,7 +77,7 @@ Generates a surface plot of the system function for the specified patch and adds
 - `values::Vector{Float32}`: A vector of system function values that will be reshaped into a 3D array with dimensions (19, 19, 19).
 - `patch::Int64`: The patch index for which the system function should be visualized (default: 10).
 """
-function surfacePlotSystemFuction!(p, values::Vector{Float32}, patch=10::Int64)
+function surfacePlotSystemFuction!(p, values::Vector, patch=10::Int64)
 	values = reshape(values, (19,19,19))
     surface!(p, values[:,:,patch])
 end
@@ -135,11 +138,11 @@ Generates a surface plot of the interpolated system function for the specified p
 - `epsilon::Float64`: The shape parameter for the interpolation kernel.
 - `patch::Int64`: The patch index for which the system function should be visualized.
 """
-function surfacePlotInterpolatedSystemFunction!(p, interpolation_grid, coefficients, ::Type{InterpolationKernel}, epsilon, patch) where {InterpolationKernel<:AbstractKernel}
-    x_range, y_range = range(-1, 1, length=19), range(-1, 1, length=19)
-    z = range(-1, 1, length=19)[patch]
+function surfacePlotInterpolatedSystemFunction!(p, interpolation_grid, coefficients, ::Type{InterpolationKernel}, epsilon, patch, FOV) where {InterpolationKernel<:AbstractKernel}
+    x_range, y_range = range(FOV[1,1], FOV[1,2], length=50), range(FOV[2,1], FOV[2,2], length=50)
+    z = range(FOV[3,1], FOV[3,2], length=19)[patch]
     f(x,y) = kernelInterpolant([y,x,z], interpolation_grid, coefficients, epsilon, InterpolationKernel)
-    Plots.plot!(p, x_range, y_range, f, st=:surface)
+    Plots.plot!(p, x_range, y_range, f, st=[:surface], legend=:none)
 end
 
 """
@@ -157,9 +160,11 @@ This function creates a new plot and then calls `surfacePlotInterpolatedSystemFu
 - `epsilon::Float64`: The shape parameter for the interpolation kernel.
 - `patch::Int64`: The patch index for which the system function should be visualized.
 """
-function surfacePlotInterpolatedSystemFunction(interpolation_grid, coefficients, ::Type{InterpolationKernel}, epsilon, patch) where {InterpolationKernel<:AbstractKernel}
+function surfacePlotInterpolatedSystemFunction(interpolation_grid, coefficients, ::Type{InterpolationKernel}, epsilon, patch, FOV) where {InterpolationKernel<:AbstractKernel}
     p = Plots.plot(layout=(1,1))
-    surfacePlotInterpolatedSystemFunction!(p, interpolation_grid, coefficients, InterpolationKernel, epsilon, patch)
+    surfacePlotInterpolatedSystemFunction!(p, interpolation_grid, coefficients, InterpolationKernel, epsilon, patch, FOV)
+    display(p)
+    return p
 end
 
 """
@@ -177,13 +182,13 @@ Generates a heatmap of the interpolated system function for the specified patch 
 - `epsilon::Float64`: The shape parameter for the interpolation kernel.
 - `patch::Int64`: The patch index for which the system function should be visualized.
 """
-function heatmapPlotInterpolatedSystemFunction!(p, interpolation_grid, coefficients, ::Type{InterpolationKernel}, epsilon, patch) where {InterpolationKernel<:AbstractKernel}
-    x_range, y_range = range(-1, 1, length=19), range(-1, 1, length=19)
-    z = range(-1, 1, length=19)[patch]
+function heatmapPlotInterpolatedSystemFunction!(p, interpolation_grid, coefficients, ::Type{InterpolationKernel}, epsilon, patch, FOV) where {InterpolationKernel<:AbstractKernel}
+    x_range, y_range = range(FOV[1,1], FOV[1,2], length=50), range(FOV[2,1], FOV[2,2], length=50)
+    z = range(FOV[3,1], FOV[3,2], length=19)[patch]
     values = [kernelInterpolant([x, y, z], interpolation_grid, coefficients, epsilon, InterpolationKernel) for x in x_range, y in y_range]
     values = reshape(values, length(x_range), length(y_range))
 
-    p = heatmap!(p, values)
+    p = heatmap!(p, x_range, y_range, values)
 end
 
 """
@@ -205,9 +210,10 @@ This function creates a new plot and then calls `heatmapPlotInterpolatedSystemFu
 # Returns
 - `Plots.Plot`: The generated plot object with the heatmap.
 """
-function heatmapPlotInterpolatedSystemFunction(interpolation_grid, coefficients, ::Type{InterpolationKernel}, epsilon, patch) where {InterpolationKernel<:AbstractKernel}
+function heatmapPlotInterpolatedSystemFunction(interpolation_grid, coefficients, ::Type{InterpolationKernel}, epsilon, patch, FOV) where {InterpolationKernel<:AbstractKernel}
     p = Plots.plot(layout = (1,1))
-    heatmapPlotInterpolatedSystemFunction!(p, interpolation_grid, coefficients, InterpolationKernel, epsilon, patch)
+    heatmapPlotInterpolatedSystemFunction!(p, interpolation_grid, coefficients, InterpolationKernel, epsilon, patch, FOV)
+    return p
 end
 
 """
@@ -240,3 +246,41 @@ function compareInterpolation(values, interpolation_grid, coefficients, ::Type{I
 
     p = plot(p1, p2, p3, p4, layout = (2,2))
 end
+
+function heatmapPlotConcentration!(p, concentration::Vector, x::Int, y::Int, z::Int, patch::Int; positive::Bool=false)
+    maximumConcentration = findmax(concentration)[1]
+    concentration = reshape(concentration, x, y, z)
+    concentration = concentration[:,:, patch]
+
+    if (positive)
+        heatmap!(p, concentration, clims=(0, maximumConcentration), aspect_ratio=:equal, xlabel=L"x", ylabel=L"y", title="")
+    else
+        heatmap!(p, concentration, aspect_ratio=:equal, xlabel=L"x", ylabel=L"y", title="")
+    end
+end
+
+function heatmapPlotConcentration(concentration::Vector, x::Int, y::Int, z::Int, patch::Int; positive::Bool=false)
+    p = Plots.plot(layout=(1, 1))
+    heatmapPlotConcentration!(p, concentration, x, y, z, patch; positive)
+    display(p)
+end
+
+function plotCoefficientsAndConcentration(coefficients, concentration::Vector, x::Int, y::Int, z::Int, patch::Int)
+    pyplot()
+    normCoefficients = @sprintf("%.3e", norm(coefficients, 2))
+    p1 = plot(layout=(1, 1))
+    p3 = plot(layout=(1, 1))
+    p4 = plot(layout=(1, 1))
+
+    p1 = plot!(p1, coefficients, label=L"\alpha", xlabel=L"k")
+    p3 = heatmapPlotConcentration!(p3, concentration, x, y, z, patch)
+    p4 = heatmapPlotConcentration!(p4, concentration, x, y, z, patch; positive=true)
+
+    p2 = plot(p3, p4, layout=(1, 2), plot_title="Reconstructed Particle concentration")
+
+    p = plot(p1, p2, layout=(2, 1))
+    # pCopy = deepcopy(p) # Workouround necessary
+    display(p)
+    return p, p1, p3, p4
+end
+

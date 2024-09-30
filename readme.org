@@ -3,3 +3,34 @@
 This is the implementation of the work in my master thesis.
 
 The file of the thesis can be found [[https://github.com/XamLe/master-thesis][here]] after the project is finished.
+
+* Performing kernel based reconstructions
+** Straightforward approach
+To start the straightforward kernel-based reconstruction, use
+#+begin_src julia
+MPIKernelReco.mainStraightforwardKernelReco()
+#+end_src
+** Interpolated approach
+To start the interpolated kernel-based reconstruction, use
+#+begin_src julia
+MPIKernelReco.mainInterpolatedKernelReco()
+#+end_src
+* Prerequisites and references
+** OpenMPIData
+The OpenMPIData dataset is an initiative for freely accessible MPI data. Above methods read the provided dataset and perform the reconstruction.
+[[https://magneticparticleimaging.github.io/OpenMPIData.jl/latest/][OpenMPIData]]
+*** Reference
+Tobias Knopp, Patryk Szwargulski, Florian Griese, Matthias Gräser,
+OpenMPIData: An initiative for freely accessible magnetic particle imaging data,
+Data in Brief,
+Volume 28,
+2020,
+104971,
+ISSN 2352-3409,
+https://doi.org/10.1016/j.dib.2019.104971.
+** MPIsimTools
+This is a package, that Christina Brandt provided access to, written by Christiane Schmidt.
+We used this package for modeling phantom measurements and system matrices to test the kernel-based reconstruction method.
+Furthermore, the methods for reading the measurements from OpenMPIData this package provided the necessary methods.
+*** Reference
+Schmidt, Christiane. Magnetic Particle Imaging-Modeling and Solving a Dynamic Inverse Problem. Diss. Staats-und Universitätsbibliothek Hamburg Carl von Ossietzky, 2022.

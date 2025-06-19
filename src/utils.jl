@@ -90,6 +90,9 @@ function solveLinearSystem(A::Matrix, u::Vector, solver::String; lambda::Float64
         lambda = 0
         sol, log = cg(transpose(A) * A, transpose(A) * u; log=true)
         println(log)
+    elseif solver == "regularizedCGNormal"
+        sol, log = cg((1/size(A,1)) * transpose(A) * A + lambda * A, (1/size(A,1)) * transpose(A) * u; log=true)
+        println(log)
     elseif solver == "regularizedKaczmarz"
         # lambda = calculateTraceOfNormalMatrix(A) * 0.000000000001 / size(A, 1)
         println("Lambda for kaczmarz algorithm: $lambda")
@@ -110,4 +113,13 @@ function solveLinearSystem(A::Matrix, u::Vector, solver::String; lambda::Float64
     end
 
     return sol
+end
+
+function weightNormalization!(problemData::ProblemData)
+    if problemData.weightNormalization == true && problemData.isWeightNormalized == false
+        rowNormalizationWeights = sqrt.(problemData.voxelVolume * sum(problemData.systemMatrix .^ 2, dims=1))
+        problemData.systemMatrix .= problemData.systemMatrix ./ (rowNormalizationWeights)
+        problemData.u .= problemData.u ./ transpose(rowNormalizationWeights)
+        problemData.isWeightNormalized = true
+    end
 end

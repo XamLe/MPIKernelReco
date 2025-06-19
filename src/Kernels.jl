@@ -10,30 +10,6 @@ Date Created: 07.03.2024
 
 using LinearAlgebra
 
-# Define an abstract type AbstractKernel
-abstract type AbstractKernel end
-
-# Define an abstract subtype AbstractSeparableKernel of AbstractKernel
-abstract type AbstractSeparableKernel <: AbstractKernel end
-
-# Define a concrete subtype GaussianKernel of AbstractSeparableKernel
-struct GaussianKernel <: AbstractSeparableKernel end
-
-# Define a concrete subtype MultiquadricKernel of AbstractKernel
-struct MultiquadricKernel <: AbstractKernel end
-
-# Define a concrete subtype InverseMultiquadricKernel of AbstractKernel
-struct InverseMultiquadricKernel <: AbstractKernel end
-
-# Define a concrete subtype Wendland0Kernel of AbstractKernel
-struct Wendland0Kernel <: AbstractSeparableKernel end
-
-# Define a concrete subtype TensorWendland0Kernel of AbstractSeparableKernel
-struct TensorWendland0Kernel <: AbstractSeparableKernel end
-
-# Define a concrete subtype AnisotropicGaussianKernel of Abstract Kernel
-struct AnisotropicGaussianKernel <: AbstractKernel end
-
 """
     kernel(x, y, k::Type{GaussianKernel})
 
@@ -152,6 +128,12 @@ function kernel(x::Vector{Float64}, y::Vector{Float64}, epsilon::Float64, ::Type
     return kernel(x[1:2], y[1:2], epsilon, GaussianKernel) * kernel(x[3], y[3], 2 * epsilon, GaussianKernel)
 end
 
+function kernel(x::Vector{Float64}, y::Vector{Float64}, epsilon::Float64, ::Type{PolynomialKernel})
+    c = 1
+    d = 2
+    return (epsilon * transpose(x) * y + c).^d
+end
+
 """
     computeKernelMatrix(grid1, grid2, epsilon::Float64, ::Type{KernelType}) where {KernelType <: AbstractKernel}
 
@@ -172,4 +154,29 @@ Computes the **kernel matrix** between two grids of points `grid1` and `grid2` u
 """
 function computeKernelMatrix(grid1, grid2, epsilon::Float64, ::Type{KernelType}) where {KernelType <: AbstractKernel}
     return [kernel(r1, r2, epsilon, KernelType) for r1 in grid1, r2 in grid2]
+end
+
+# Computes the evaluations of the Riesz representers on a given evaluation grid.
+#
+# This function applies the Riesz representer associated with a linear functional,
+# represented in the form of the sampling matrix `SM`, to a kernel Gram matrix.
+# Specifically, it computes the product of the transpose of `SM` with the Gram
+# matrix constructed between `gridEval` (evaluation points) and `gridInherent`
+# (kernel centers), using a kernel of type `KernelType` with shape parameter `epsilon`.
+#
+# Arguments:
+# - gridEval     : Points at which to evaluate the Riesz representers.
+# - gridInherent : Points representing the centers of the system matrix measurements.
+# - SM           : System matrix representing the linear functionals.
+# - epsilon      : Shape parameter for the kernel function.
+# - KernelType   : A subtype of `AbstractKernel` specifying the kernel to use.
+#
+# Returns:
+# - A matrix of Riesz representer evaluations at the points in `gridEval`.
+#
+# Note: !!!!!!!
+# = Duplicate of the computeBasiFunctions function, these can be combined
+function computeRieszRepresenterEvaluations(gridEval::Vector{<:AbstractVector}, problemData::ProblemData{K}) where {K <: AbstractKernel}
+    gramMatrix = computeKernelMatrix(gridEval, problemData.inherentGrid, problemData.epsilon, typeof(problemData.reconstructionKernel)) # TODO: instanz statt typ uebergeben
+    return problemData.voxelVolume * transpose(gramMatrix) * problemData.systemMatrix
 end

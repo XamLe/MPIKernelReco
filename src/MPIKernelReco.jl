@@ -12,6 +12,8 @@ include("straightforwardKernelReco.jl")
 include("phantoms.jl")
 include("kaczmarzReconstruction.jl")
 include("utils.jl")
+include("kernelThinning.jl")
+include("initializeProblem.jl")
 
 export kernel, GaussianKernel, AbstractKernel, MultiquadricKernel, InverseMultiquadricKernel, Wendland0Kernel, computeKernelMatrix
 export getKernelInterpolationCoefficients, assembleKernelInterpolationMatrix, kernelInterpolant, choleskyDecomposeInterpolationMatrix
@@ -25,6 +27,9 @@ export mainStraightforwardKernelReco, computeBasisFunctions, findLinearlyIndepen
 export getBallPhantom
 export kaczmarzReg, calculateTraceOfNormalMatrix, reconstruction
 export scaleLinearSystemByRow, scaleLinearSystemByMaximum
+export computeRieszRepresenterEvaluations
+export kernelThinning
+export initializeProblem, initializePhantomProblem
 
 # To start the kernel based reconstruction, use the function mainStraightforwardKernelReco
 #

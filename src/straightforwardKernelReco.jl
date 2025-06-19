@@ -1,5 +1,6 @@
 using OpenMPIData
 using OffsetArrays
+using MPIsimTools: smParams
 using ImageFiltering
 using IterativeSolvers
 using Preconditioners
@@ -85,7 +86,6 @@ function mainStraightforwardKernelReco(SM::Matrix,
 
     SM, u = findLinearlyIndependent(SM, u, 1e-5)
 
-
     # voxelVolume = 1 # voxelVolume is aready contained in the Systemmatrix
     grid = [[x, y, z] for x in smP.rX, y in smP.rY, z in smP.rZ]
     grid = reshape(grid, length(smP.rX) * length(smP.rY) * length(smP.rZ))
@@ -96,8 +96,17 @@ function mainStraightforwardKernelReco(SM::Matrix,
     # x3 = [(i - (smP.FOV[3, 1] + smP.FOV[3, 2])) / ((smP.FOV[3, 2] - smP.FOV[3, 1])) for i in smP.rZ]
     # grid = [[x1[i], x2[j], x3[k]] for i in eachindex(smP.rX), j in eachindex(smP.rY), k in eachindex(smP.rZ)]
     # grid = reshape(grid, length(smP.rX) * length(smP.rY) * length(smP.rZ))
+    length_eval = [19, 19, 19]
+    x1_eval = collect(range(smP.FOV[1, 1], smP.FOV[1, 2], length=length_eval[1])) # * 100
+    x2_eval = collect(range(smP.FOV[2, 1], smP.FOV[2, 2], length=length_eval[2])) # * 100
+    x3_eval = collect(range(smP.FOV[3, 1], smP.FOV[3, 2], length=length_eval[3])) # * 100
+    # x3_eval = smP.rZ
+    eval_grid = [[i, j, k] for i in x1_eval, j in x2_eval, k in x3_eval]
+    eval_grid = reshape(eval_grid, prod(length_eval))
 
     kernelMatrix = computeKernelMatrix(grid, grid, epsilon, Kernel)
+
+    # problemData = ProblemData(SM, grid,voxelVolume, eval_grid, epsilon, Kernel(), u)
 
     """
     1. Assemble reconstruction matrix
@@ -108,7 +117,7 @@ function mainStraightforwardKernelReco(SM::Matrix,
 
     # A = voxelVolume * B * SM
     A = voxelVolume.^2 .* transpose(SM) * kernelMatrix * SM
-    A = (transpose(A) + A) ./2
+    A = (transpose(A) + A) ./2 # Gram Matrix
 
     println("Reconstruction Matrix assembled")
 
@@ -142,13 +151,6 @@ function mainStraightforwardKernelReco(SM::Matrix,
 
     # c = (transpose(B) * coefB)
 
-    length_eval = [19, 19, 19]
-    x1_eval = collect(range(smP.FOV[1, 1], smP.FOV[1, 2], length=length_eval[1])) # * 100
-    x2_eval = collect(range(smP.FOV[2, 1], smP.FOV[2, 2], length=length_eval[2])) # * 100
-    x3_eval = collect(range(smP.FOV[3, 1], smP.FOV[3, 2], length=length_eval[3])) # * 100
-    # x3_eval = smP.rZ
-    eval_grid = [[i, j, k] for i in x1_eval, j in x2_eval, k in x3_eval]
-    eval_grid = reshape(eval_grid, prod(length_eval))
     KRecoEval = computeKernelMatrix(grid, eval_grid, epsilon, Kernel)
     c = transpose(voxelVolume * transpose(SM) * KRecoEval) * coefB
     println("Concentration computed")
@@ -165,7 +167,10 @@ function mainStraightforwardKernelReco(SM::Matrix,
         savefig(plotConcentrationPositive, saveDataPath * "concentrationPositive_kernel=$(Kernel)_epsilon=$(epsilon)_solver=$(solver)_lambda=$(lambda).png")
     end
 
-    return c, B, coefB, A, u, SM
+    residual = A * coefB - u
+    interpolantNorm = sqrt(transpose(coefB) * A * coefB)
+    # return c, B, coefB, A, u, SM, smP
+    return ReconstructionResult(c, B, coefB, A, residual, interpolantNorm)
 end
 
 function mainStraightforwardKernelReco(experimentHDFPath::String, u::Vector{Float64})
@@ -181,6 +186,14 @@ function mainStraightforwardKernelReco(experimentHDFPath::String, u::Vector{Floa
     concentration = basisFunctions' * coefB
 
     return concentration, basisFunctions, coefB, reconstructionMatrix
+end
+
+function mainStraightforwardKernelReco(problemData::ProblemData; lambda::Float64=1e8, solver::String="CGNormal")
+    weightNormalization!(problemData)
+    SNR = zeros(Float64, 1,1,1)
+    smP = MPIsimTools.smParams(problemData.FOV, [0], SNR, problemData.voxelSize, problemData.rX, problemData.rY, problemData.rZ, false, [false], false, false, false, false, false, false, [0], [0])
+    systemMatrix = problemData.systemMatrix .* problemData.voxelVolume
+    return mainStraightforwardKernelReco(systemMatrix, problemData.u, smP, typeof(problemData.reconstructionKernel), problemData.epsilon, lambda, false; solver=solver)
 end
 
 """
